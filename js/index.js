@@ -18,6 +18,22 @@ function initialize() {
     playPauseToggle();
 }
 
+// updates current audio by ID
+function setCurrentAudio() {
+    currentAudio = `songs/${currentPlaylist()[currentAudioIdx].src}`;
+    audioPlayer = document.getElementById("audioPlayer");
+    audioPlayer.src = currentAudio;
+    reloadCoverArea();
+}
+
+// update cover area
+function reloadCoverArea() {
+    const audio = currentPlaylist()[currentAudioIdx];
+    document.getElementById("coverArt").src = `images/cover/${audio.cover}`;
+    document.getElementById("audioName").innerText = audio.name;
+    document.getElementById("artistName").innerText = audio.artist;
+}
+
 // play next
 function nextClicked(elem) {
     console.log('next clicked');
@@ -80,3 +96,62 @@ function handlePlayPause(elem) {
         audioPlayer.pause();
     }
 }
+
+// handler for the filters
+function applyFilter(elem, type) {
+    if (type == 'name') {
+        filters.name = elem.value;
+    } else {
+        filters.artist = elem.value;
+    }
+    finalList = allMusicOG.filter(item => {
+        if (filters.name && !item.name.toUpperCase().includes(filters.name.toUpperCase())) return false;
+        if (filters.artist && !item.artist.toUpperCase().includes(filters.artist.toUpperCase())) return false;
+        return true;
+    });
+    loadPlayList();
+}
+
+function currentPlaylist() {
+    return (filters.artist || filters.name) ? finalList : allMusicOG;
+}
+
+// load playlist table
+function loadPlayList() {
+    const pl = document.getElementById('playListBody');
+    let tBody = "";
+    currentPlaylist().forEach((song, idx) => {
+        let tRow = `
+            <tr class='audio-row' onClick=playRecordByIndex(${idx})>
+                <td>
+                    <p>${song.name}</p>
+                </td>
+                <td>
+                    <p>${song.artist}</p>
+                </td>
+            </tr>
+        `;
+        tBody = tBody + tRow;
+    });
+    pl.innerHTML = tBody;
+}
+
+function updateTimer() {
+    const cur = audioPlayer.currentTime;
+    const rem = isNaN(audioPlayer.duration) ? 0 : audioPlayer.duration - audioPlayer.currentTime;
+    const min = document.querySelector('.current-time').innerText = formatTime(cur);
+    const max = document.querySelector('.max-duration').innerText = formatTime(rem)
+}
+
+function formatTime(timer) {
+    let mins = Math.floor(timer / 60);
+    let secs = Math.floor(timer % 60);
+    if (secs < 10) {
+        secs = `0${String(secs)}`;
+    }
+
+    return `${mins}:${secs}`;
+}
+
+// Initializes the app
+initialize();
